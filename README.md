@@ -208,3 +208,4 @@ Ralph automatically archives previous runs when you start a new feature (differe
 
 - [Geoffrey Huntley's Ralph article](https://ghuntley.com/ralph/)
 - [Codex CLI](https://github.com/openai/codex)
+- [This repo (Codex port)](https://github.com/aytzey/ralph_for_codex)

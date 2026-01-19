@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ralph is an autonomous AI agent loop that runs Amp repeatedly until all PRD items are complete. Each iteration is a fresh Amp instance with clean context.
+Ralph is an autonomous AI agent loop that runs Codex (`codex --yolo exec`) repeatedly until all PRD items are complete. Each iteration is a fresh Codex run with clean context.
 
 ## Commands
 
@@ -19,8 +19,10 @@ cd flowchart && npm run build
 
 ## Key Files
 
-- `ralph.sh` - The bash loop that spawns fresh Amp instances
-- `prompt.md` - Instructions given to each Amp instance
+- `ralph.sh` - The bash loop that spawns fresh Codex runs
+- `doctor.sh` - Sanity checks for a target repo
+- `install.sh` - One-command installer into `scripts/ralph`
+- `prompt.md` - Instructions given to each Codex run
 - `prd.json.example` - Example PRD format
 - `flowchart/` - Interactive React Flow diagram explaining how Ralph works
 
@@ -37,7 +39,7 @@ npm run dev
 
 ## Patterns
 
-- Each iteration spawns a fresh Amp instance with clean context
+- Each iteration spawns a fresh Codex run with clean context
 - Memory persists via git history, `progress.txt`, and `prd.json`
 - Stories should be small enough to complete in one context window
 - Always update AGENTS.md with discovered patterns for future iterations

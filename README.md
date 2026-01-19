@@ -2,7 +2,11 @@
 
 ![Ralph](ralph.webp)
 
-Ralph is an autonomous AI agent loop that runs [Amp](https://ampcode.com) repeatedly until all PRD items are complete. Each iteration is a fresh Amp instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
+Ralph is an autonomous AI agent loop that runs Codex (`codex --yolo exec`) repeatedly until all PRD items are complete. Each iteration is a fresh Codex run with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
+
+This repo is a Codex-focused variant of the original Ralph implementation:
+- Upstream: https://github.com/snarktank/ralph (Amp-based)
+- This repo: replaces Amp with Codex, and adds `install.sh` + `doctor.sh` for reliable setup/smoke checks.
 
 Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
@@ -10,11 +14,27 @@ Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
 ## Prerequisites
 
-- [Amp CLI](https://ampcode.com) installed and authenticated
+- [Codex CLI](https://github.com/openai/codex) installed and authenticated (`codex login`)
 - `jq` installed (`brew install jq` on macOS)
 - A git repository for your project
 
 ## Setup
+
+### Option 0: One-command install (recommended)
+
+From your project root:
+
+```bash
+bash /path/to/ralph/install.sh
+./scripts/ralph/doctor.sh
+./scripts/ralph/ralph.sh 10
+```
+
+Install skills globally (optional):
+
+```bash
+bash /path/to/ralph/install.sh --install-skills
+```
 
 ### Option 1: Copy to your project
 
@@ -24,30 +44,23 @@ Copy the ralph files into your project:
 # From your project root
 mkdir -p scripts/ralph
 cp /path/to/ralph/ralph.sh scripts/ralph/
+cp /path/to/ralph/doctor.sh scripts/ralph/
 cp /path/to/ralph/prompt.md scripts/ralph/
+cp /path/to/ralph/install.sh scripts/ralph/
 chmod +x scripts/ralph/ralph.sh
+chmod +x scripts/ralph/doctor.sh
+chmod +x scripts/ralph/install.sh
 ```
 
 ### Option 2: Install skills globally
 
-Copy the skills to your Amp config for use across all projects:
+Copy the skills to your Codex skills directory for use across all projects:
 
 ```bash
-cp -r skills/prd ~/.config/amp/skills/
-cp -r skills/ralph ~/.config/amp/skills/
+mkdir -p ~/.codex/skills
+cp -r skills/prd ~/.codex/skills/
+cp -r skills/ralph ~/.codex/skills/
 ```
-
-### Configure Amp auto-handoff (recommended)
-
-Add to `~/.config/amp/settings.json`:
-
-```json
-{
-  "amp.experimental.autoHandoff": { "context": 90 }
-}
-```
-
-This enables automatic handoff when context fills up, allowing Ralph to handle large stories that exceed a single context window.
 
 ## Workflow
 
@@ -66,14 +79,15 @@ Answer the clarifying questions. The skill saves output to `tasks/prd-[feature-n
 Use the Ralph skill to convert the markdown PRD to JSON:
 
 ```
-Load the ralph skill and convert tasks/prd-[feature-name].md to prd.json
+Load the ralph skill and convert tasks/prd-[feature-name].md to scripts/ralph/prd.json
 ```
 
-This creates `prd.json` with user stories structured for autonomous execution.
+This creates `scripts/ralph/prd.json` with user stories structured for autonomous execution.
 
 ### 3. Run Ralph
 
 ```bash
+./scripts/ralph/doctor.sh
 ./scripts/ralph/ralph.sh [max_iterations]
 ```
 
@@ -86,15 +100,15 @@ Ralph will:
 4. Run quality checks (typecheck, tests)
 5. Commit if checks pass
 6. Update `prd.json` to mark story as `passes: true`
-7. Append learnings to `progress.txt`
+7. Append learnings to `scripts/ralph/progress.txt`
 8. Repeat until all stories pass or max iterations reached
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `ralph.sh` | The bash loop that spawns fresh Amp instances |
-| `prompt.md` | Instructions given to each Amp instance |
+| `ralph.sh` | The bash loop that spawns fresh Codex runs |
+| `prompt.md` | Instructions given to each Codex run |
 | `prd.json` | User stories with `passes` status (the task list) |
 | `prd.json.example` | Example PRD format for reference |
 | `progress.txt` | Append-only learnings for future iterations |
@@ -120,7 +134,7 @@ npm run dev
 
 ### Each Iteration = Fresh Context
 
-Each iteration spawns a **new Amp instance** with clean context. The only memory between iterations is:
+Each iteration spawns a **new Codex run** with clean context. The only memory between iterations is:
 - Git history (commits from previous iterations)
 - `progress.txt` (learnings and context)
 - `prd.json` (which stories are done)
@@ -142,7 +156,7 @@ Too big (split these):
 
 ### AGENTS.md Updates Are Critical
 
-After each iteration, Ralph updates the relevant `AGENTS.md` files with learnings. This is key because Amp automatically reads these files, so future iterations (and future human developers) benefit from discovered patterns, gotchas, and conventions.
+After each iteration, Ralph updates the relevant `AGENTS.md` files with learnings. This is key because the next Codex run (and future human developers) can quickly pick up important patterns, gotchas, and conventions.
 
 Examples of what to add to AGENTS.md:
 - Patterns discovered ("this codebase uses X for Y")
@@ -158,7 +172,7 @@ Ralph only works if there are feedback loops:
 
 ### Browser Verification for UI Stories
 
-Frontend stories must include "Verify in browser using dev-browser skill" in acceptance criteria. Ralph will use the dev-browser skill to navigate to the page, interact with the UI, and confirm changes work.
+Frontend stories must include a verifiable UI check in acceptance criteria. Prefer automated checks (Playwright/Cypress/etc.) if available; if you have a browser automation skill (e.g., `dev-browser`), use it to verify the UI end-to-end.
 
 ### Stop Condition
 
@@ -170,10 +184,10 @@ Check current state:
 
 ```bash
 # See which stories are done
-cat prd.json | jq '.userStories[] | {id, title, passes}'
+cat scripts/ralph/prd.json | jq '.userStories[] | {id, title, passes}'
 
 # See learnings from previous iterations
-cat progress.txt
+cat scripts/ralph/progress.txt
 
 # Check git history
 git log --oneline -10
@@ -193,4 +207,4 @@ Ralph automatically archives previous runs when you start a new feature (differe
 ## References
 
 - [Geoffrey Huntley's Ralph article](https://ghuntley.com/ralph/)
-- [Amp documentation](https://ampcode.com/manual)
+- [Codex CLI](https://github.com/openai/codex)

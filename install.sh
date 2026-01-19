@@ -72,6 +72,7 @@ require_cmd chmod
 require_cmd grep
 require_cmd mkdir
 require_cmd cat
+require_cmd find
 
 if [ -z "$PROJECT_DIR" ]; then
   fail "--project requires a directory"
@@ -173,10 +174,14 @@ if [ "$INSTALL_SKILLS" -eq 1 ]; then
   fi
   CODEX_SKILLS_DIR="${HOME}/.codex/skills"
   mkdir -p "$CODEX_SKILLS_DIR"
-  [ -d "$SOURCE_DIR/skills/prd" ] || fail "Missing skills directory: $SOURCE_DIR/skills/prd"
-  [ -d "$SOURCE_DIR/skills/ralph" ] || fail "Missing skills directory: $SOURCE_DIR/skills/ralph"
-  cp -r "$SOURCE_DIR/skills/prd" "$CODEX_SKILLS_DIR/"
-  cp -r "$SOURCE_DIR/skills/ralph" "$CODEX_SKILLS_DIR/"
+  [ -d "$SOURCE_DIR/skills" ] || fail "Missing skills directory: $SOURCE_DIR/skills"
+
+  while IFS= read -r -d '' dir; do
+    name="$(basename "$dir")"
+    [ -f "$dir/SKILL.md" ] || continue
+    cp -r "$dir" "$CODEX_SKILLS_DIR/"
+    echo "Installed Codex skill: $name"
+  done < <(find "$SOURCE_DIR/skills" -mindepth 1 -maxdepth 1 -type d -print0)
 fi
 
 echo "Installed Ralph into: $PROJECT_DIR/$DEST_DIR_REL"

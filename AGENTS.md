@@ -13,6 +13,12 @@ cd flowchart && npm run dev
 # Build the flowchart
 cd flowchart && npm run build
 
+# Install skills globally for Codex
+./install.sh --install-skills
+
+# Install Ralph into a target project
+./install.sh --project /path/to/your/project
+
 # Run Ralph (from your project that has prd.json)
 ./ralph.sh [max_iterations]
 ```

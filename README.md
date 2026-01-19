@@ -36,6 +36,15 @@ Install skills globally (optional):
 bash /path/to/ralph/install.sh --install-skills
 ```
 
+### Install as Codex skills (recommended)
+
+If you want to use the included skills (`prd`, `ralph`, `setup-ralph-for-codex`) in any project, install them once:
+
+```bash
+cd /path/to/ralph
+bash ./install.sh --install-skills
+```
+
 ### Option 1: Copy to your project
 
 Copy the ralph files into your project:
